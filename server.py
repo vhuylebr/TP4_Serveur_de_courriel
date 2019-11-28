@@ -3,6 +3,7 @@ from socketUtil import send_msg, recv_msg
 import re
 import os
 from hashlib import sha256
+from email.mime.text import MIMEText
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -49,3 +50,78 @@ if (flag == "1"):
     f = open("./" + name + "/config.txt", "w+")
     hashedText = sha256(password.encode()).hexdigest()
     f.write(hashedText)
+    f.close()
+while True:
+    option = recv_msg(s)
+    if option == "2":
+        emailAddress = recv_msg(s)
+        sujet = recv_msg(s)
+        corps = recv_msg(s)
+
+        # creation du courriel
+        courriel = MIMEText(corps)
+        courriel["From"] = name + "@glo2000.ca"
+        courriel["To"] = emailAddress
+        courriel["Subject"] = sujet
+        if (emailAddress.find("@glo2000.ca") != -1):
+            if os.path.isdir("./" + emailAddress[:-11]) == False:
+                if os.path.isdir("./ERREUR") == False:
+                    os.mkdir("ERREUR")
+                f = open("./ERREUR/" + sujet, "a+")
+                f.write("From: " + courriel["From"] + "\n")
+                f.write("To: " + courriel["To"] + "\n")
+                f.write("Sujet: " + courriel["Subject"] + "\n")
+                f.write("Message: " + corps + "\n")
+                f.close()
+                send_msg(
+                    s, "L’envoi n’a pas pu etre effectue destinataire inconnu.")
+            else:
+                path = "./" + emailAddress[:-11] + "/" + sujet
+                f = open(path, "a+")
+                f.write("From: " + courriel["From"] + "\n")
+                f.write("To: " + courriel["To"] + "\n")
+                f.write("Sujet: " + courriel["Subject"] + "\n")
+                f.write("Message: " + corps + "\n")
+                f.close()
+                send_msg(s, "Le courriel a bien ete envoye! ")
+        else:  # envoi du courriel
+            try:
+                smtpConnection = smtplib.SMTP(
+                    host="smtp.ulaval.ca", timeout=10)
+                smtpConnection.sendmail(
+                    courriel["From"], courriel["To"], courriel.as_string())
+                smtpConnection.quit()
+                send_msg(s, "Le courriel a bien ete envoye! ")
+            except:
+                send_msg(s, "L’envoi n’a pas pu etre effectue.")
+    if option == "4":
+        s.close()
+        break
+    if option == "1":
+        listOfSubject = os.listdir("./" + name)
+        listOfSubject.remove("config.txt")
+        if len(listOfSubject) == 0:
+            send_msg(s, "")
+        else:
+            listOfSubjectText = ""
+            for i in range(len(listOfSubject)):
+                listOfSubjectText += str(i) + ". " + listOfSubject[i] + "\n"
+            send_msg(s, listOfSubjectText)
+            idSubject = int(recv_msg(s))
+            subjectPath = "./" + name + "/" + listOfSubject[idSubject]
+            f = open(subjectPath, "r")
+            send_msg(s, f.read())
+            f.close()
+    if option == "3":
+        subjects = os.listdir("./" + name)
+        subjects.remove("config.txt")
+        size = 0
+        listMessageBySubject = ""
+        for subject in subjects:
+            size += os.path.getsize("./" + name + "/" + subject)
+            f = open("./" + name + "/" + subject, "r")
+            listMessageBySubject += subject + "\n"
+            listMessageBySubject += f.read()
+            f.close()
+        send_msg(s, "vous avez " +
+                 str(listMessageBySubject.count("To")) + " messages\n" + "la taille du dossier est de " + str(size) + " octets\n" + "Voici ci-dessous la liste  des messages par sujet:\n" + listMessageBySubject)

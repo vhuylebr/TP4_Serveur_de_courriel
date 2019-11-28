@@ -45,11 +45,39 @@ while True:
         if n < 1 or n > 4:
             continue
         else:
+            send_msg(s, str(n))
+            if n == 1:
+                subjectList = recv_msg(s)
+                if (subjectList == ""):
+                    print("Vous n'avez aucun message.")
+                    continue
+                subjectListSplit = subjectList.split("\n")[:-1]
+                print(subjectList)
+                while True:
+                    try:
+                        idSubject = int(input())
+                        if idSubject < 0 or idSubject > len(subjectListSplit) - 1:
+                            print("out of range.")
+                            continue
+                        else:
+                            send_msg(s, str(idSubject))
+                            print(recv_msg(s))
+                            input("appuyez sur entrée pour retourner au menu\n")
+                            break
+                    except ValueError:
+                        print("out of range.")
+                        continue
             if n == 2:
                 dest = input("l'adresse de destination:")
                 sujet = input("sujet:")
                 corps = input("le corps du message:")
+                send_msg(s, dest)
+                send_msg(s, sujet)
+                send_msg(s, corps)
+                print(recv_msg(s))
             if n == 4:
                 exit()
+            if n == 3:
+                print(recv_msg(s))
     except ValueError:
         continue
