@@ -4,6 +4,7 @@ import re
 import os
 from hashlib import sha256
 from email.mime.text import MIMEText
+from smtplib import SMTP
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -29,7 +30,7 @@ while isValid != True:
         isValid = f.read() == hashedText
         if isValid == False:
             send_msg(s, "False")
-            send_msg(s, "L'utilisateur n'existe pas.")
+            send_msg(s, "Username ou Password incorrect .")
             continue
     elif (flag == "1"):
         isValid = bool(regex.match(password))
@@ -86,10 +87,12 @@ while True:
                 send_msg(s, "Le courriel a bien ete envoye! ")
         else:  # envoi du courriel
             try:
-                smtpConnection = smtplib.SMTP(
+                smtpConnection = SMTP(
                     host="smtp.ulaval.ca", timeout=10)
+                print("connection")
                 smtpConnection.sendmail(
                     courriel["From"], courriel["To"], courriel.as_string())
+                print("sendMail")
                 smtpConnection.quit()
                 send_msg(s, "Le courriel a bien ete envoye! ")
             except:

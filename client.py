@@ -26,7 +26,11 @@ while True:
         print("Taper 1 pour créer un compte or 2 pour vous connecter.")
 isValid = False
 while isValid != True:
-    name = input("username:")
+    name = ""
+    while name == "":
+        name = input("username:")
+        if (name == ""):
+            print("Mettez un nom valide.")
     password = getpass.getpass("Password : ")
     send_msg(s, str(n))
     send_msg(s, name)
@@ -51,21 +55,22 @@ while True:
                 if (subjectList == ""):
                     print("Vous n'avez aucun message.")
                     continue
+                print("Tapez le numéro du sujet que vous désirez.")
                 subjectListSplit = subjectList.split("\n")[:-1]
                 print(subjectList)
                 while True:
                     try:
                         idSubject = int(input())
                         if idSubject < 0 or idSubject > len(subjectListSplit) - 1:
-                            print("out of range.")
+                            print("Option incorrect.")
                             continue
                         else:
                             send_msg(s, str(idSubject))
                             print(recv_msg(s))
-                            input("appuyez sur entrée pour retourner au menu\n")
+                            input("Appuyez sur entrée pour retourner au menu\n")
                             break
                     except ValueError:
-                        print("out of range.")
+                        print("Option incorrect.")
                         continue
             if n == 2:
                 dest = input("l'adresse de destination:")
